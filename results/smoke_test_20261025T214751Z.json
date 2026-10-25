@@ -1,0 +1,239 @@
+{
+  "timestamp_utc": "20261025T214751Z",
+  "state": "UUFUUFUUFRRRRRRRRRFFDFFDFFDDDBDDBDDBLLLLLLLLLUBBUBBUBB",
+  "optimal_move": "R'",
+  "opus_settings": {
+    "reasoning_effort": "low",
+    "max_tokens": 1024
+  },
+  "results": {
+    "jev": {
+      "http_status": 200,
+      "latency_ms": 2323.2,
+      "raw": {
+        "model": "typesafe/jev-1.13-20260917",
+        "answers": {
+          "next_move": {
+            "type": "choice",
+            "choice": "U2",
+            "probabilities": {
+              "U": 0.08,
+              "U'": 0.02,
+              "U2": 0.17,
+              "R": 0.04,
+              "R'": 0.02,
+              "R2": 0.03,
+              "F": 0.07,
+              "F'": 0.02,
+              "F2": 0.13,
+              "D": 0.07,
+              "D'": 0.03,
+              "D2": 0.1,
+              "L": 0.04,
+              "L'": 0.02,
+              "L2": 0.04,
+              "B": 0.04,
+              "B'": 0.02,
+              "B2": 0.06
+            },
+            "confidence": 0.12
+          }
+        },
+        "usage": {
+          "input_tokens": 775,
+          "output_tokens": 157,
+          "cost": 3.255e-05
+        },
+        "id": "gen-dec-1792964860-jXrGiBoVnMG743rcCXV4",
+        "provider": "TypeSafe"
+      },
+      "move": "U2",
+      "confidence": 0.12,
+      "served_model": "typesafe/jev-1.13-20260917",
+      "provider": "TypeSafe",
+      "input_tokens": 775,
+      "output_tokens": 157,
+      "cost_usd": 3.255e-05,
+      "model_id": "typesafe/jev-1.13",
+      "api": "decisions",
+      "valid_move": true,
+      "optimal": false
+    },
+    "luna": {
+      "http_status": 200,
+      "latency_ms": 862.1,
+      "raw": {
+        "model": "openai/gpt-6-luna-decisions-20261006",
+        "answers": {
+          "next_move": {
+            "type": "choice",
+            "choice": "U",
+            "probabilities": {
+              "U": 0.17,
+              "U'": 0.09,
+              "U2": 0.12,
+              "R": 0.06,
+              "R'": 0.08,
+              "R2": 0.02,
+              "F": 0.11,
+              "F'": 0.07,
+              "F2": 0.09,
+              "D": 0.02,
+              "D'": 0.03,
+              "D2": 0.01,
+              "L": 0.01,
+              "L'": 0.02,
+              "L2": 0.02,
+              "B": 0.02,
+              "B'": 0.02,
+              "B2": 0.04
+            },
+            "confidence": 0.12
+          }
+        },
+        "usage": {
+          "input_tokens": 447,
+          "output_tokens": 0,
+          "cost": 4.47e-05
+        },
+        "id": "gen-dec-1792964862-I9XMWkV9ELzFPt2OPmWc",
+        "provider": "OpenAI"
+      },
+      "move": "U",
+      "confidence": 0.12,
+      "served_model": "openai/gpt-6-luna-decisions-20261006",
+      "provider": "OpenAI",
+      "input_tokens": 447,
+      "output_tokens": 0,
+      "cost_usd": 4.47e-05,
+      "model_id": "openai/gpt-6-luna-decisions",
+      "api": "decisions",
+      "valid_move": true,
+      "optimal": false
+    },
+    "clef": {
+      "http_status": 200,
+      "latency_ms": 2300.9,
+      "raw": {
+        "model": "cloudflare/clef",
+        "answers": {
+          "next_move": {
+            "type": "choice",
+            "choice": "D2",
+            "probabilities": {
+              "U": 0.0767,
+              "U'": 0.0669,
+              "U2": 0.0664,
+              "R": 0.0453,
+              "R'": 0.0409,
+              "R2": 0.0309,
+              "F": 0.0836,
+              "F'": 0.0832,
+              "F2": 0.0823,
+              "D": 0.0856,
+              "D'": 0.0782,
+              "D2": 0.1028,
+              "L": 0.019,
+              "L'": 0.0209,
+              "L2": 0.0248,
+              "B": 0.0306,
+              "B'": 0.0292,
+              "B2": 0.0329
+            },
+            "confidence": 0.05
+          }
+        },
+        "usage": {
+          "input_tokens": 666,
+          "output_tokens": 0,
+          "cost": 2.7972e-05
+        },
+        "id": "gen-dec-1792964863-J8VnsVlqXEgQ8wOzWsEu",
+        "provider": "PrimeIntellect"
+      },
+      "move": "D2",
+      "confidence": 0.05,
+      "served_model": "cloudflare/clef",
+      "provider": "PrimeIntellect",
+      "input_tokens": 666,
+      "output_tokens": 0,
+      "cost_usd": 2.7972e-05,
+      "model_id": "cloudflare/clef",
+      "api": "decisions",
+      "valid_move": true,
+      "optimal": false
+    },
+    "opus": {
+      "http_status": 200,
+      "latency_ms": 5936.7,
+      "raw": {
+        "id": "gen-1792964865-NbuQlcNNGG2m15PHwsCF",
+        "object": "chat.completion",
+        "created": 1792964865,
+        "model": "anthropic/claude-opus-5.5",
+        "provider": "Claude Platform on AWS",
+        "system_fingerprint": null,
+        "service_tier": "default",
+        "choices": [
+          {
+            "index": 0,
+            "logprobs": null,
+            "finish_reason": "stop",
+            "native_finish_reason": "end_turn",
+            "message": {
+              "role": "assistant",
+              "content": "{\"move\": \"R'\"}",
+              "refusal": null,
+              "reasoning": "This pattern matches a single R move's effect, where F's right column stickers get transferred to U. So undoing it just requires applying R'.\n\n",
+              "reasoning_details": [
+                {
+                  "type": "reasoning.text",
+                  "text": "This pattern matches a single R move's effect, where F's right column stickers get transferred to U. So undoing it just requires applying R'.\n\n",
+                  "format": "anthropic-claude-v1",
+                  "index": 0,
+                  "signature": "CAQS0wYKEAgTGAI4AUIIdGhpbmtpbmcSDKrqQv9q0WJkckgBHhoMr4LIAClz2FNEr1RdIjBLBvgyR9HFFs+29PsopVfElj8yvFW5kjjONeNs0/IgNTJz0/DxrHkkmhDqUmVrdqkq8AVFe9Jp7FDFBCNtpi3jcC+cFKwNK3kr1xruCArMEFiEUws+afVqchXXSgWdgIo5V4DKtOssKa0g76NzakTmvixzr79BCIkV+pExhzIW1w6fUwytSy6BijUA6ygxxThzKDyOJz5gqIvXbEzpDNPSnmc7rmvEHO3362zBA2a84kY6sPc+CkwCWyLvnP7sNkXImQMb5oFeGIEbVkDgiZcgvMhrp226jaj+M/8z7TRIbcF0SJQ2+iqWpaUzovgVIdqxPb1Q7jbX0WXdbnnjgLbL6wE3QQEDP4I4iE60UUtz4R4qzmCAO8wQk9+fMdx/nj2AAZ3D0HHAtVJ19dPWXY8GWLNazCoUxU2GrTUCGhCCQr2q5xKvTtwI5pqQ1RIBrQvcRYS4CwEyjsyW4SBITP1f2kCp1R6M0OSnjZ9Qkt2YnJR8LWW29l1di9ncBy4jgZTBjEGpiid5k/5JfmViKsVmSIdTpY8eyVR284eUFahZ8AALOoAs1VrFA5RZtTgh0972A5n2QPSMuzhY33rVwirx0wT5oMnh+dH8zioabI9TZFW62W9ZC7D1KCe9INSpkxOnhOWhAv8jdnC32r1DQQO9VYj8RWODk09eGfkL5tu9I/TxNzWoStjY49f7fSSucECHrSEZfutuSbvWFSnzjso9UhPhntOHY8z9zP+f5dXAvHX6NbmYfD/Fbqe8rytmL7snCSEKIQ4JPR7U90lNe2mJ0yyp1O4LB3yrYEWsyY4M1kwTdJo+bLOu6PXJ5QYB0aFI0psPpLVoFg7lfM+MX62p0QoYzQl5PvK5Gp7LQWMJKugThexulTukyzVx2/2odkp5KvLSbnB7WD1xJ3xAr7DZtfh8gFJGJHUCGvgv96rR7pveTl4K3Zze1TQnlB5v54z+DMV7vdNbdY0P+4UEmp1P6T0hiwFuhd2EfCLpVA8y4SCuNJoL8zPQ2Yyi8838IuuDvd9OBMapoYU7Bo1S2z6lbzx43tUpLZN8dYlnSfq8C84WcxgB.eyJlbmRwb2ludF9zbHVnIjoiYW50aHJvcGljL2NsYXVkZS1vcHVzLTUuNS0yMDI2MDkyMXxjbGF1ZGUtb24tYXdzIn0"
+                }
+              ]
+            }
+          }
+        ],
+        "usage": {
+          "prompt_tokens": 281,
+          "completion_tokens": 92,
+          "total_tokens": 373,
+          "cost": 0.002964,
+          "is_byok": false,
+          "prompt_tokens_details": {
+            "cached_tokens": 0,
+            "cache_write_tokens": 0,
+            "audio_tokens": 0,
+            "video_tokens": 0
+          },
+          "cost_details": {
+            "upstream_inference_cost": 0.002964,
+            "upstream_inference_prompt_cost": 0.001124,
+            "upstream_inference_completions_cost": 0.00184
+          },
+          "completion_tokens_details": {
+            "reasoning_tokens": 81,
+            "image_tokens": 0,
+            "audio_tokens": 0
+          }
+        }
+      },
+      "move": "R'",
+      "raw_content": "{\"move\": \"R'\"}",
+      "finish_reason": "stop",
+      "served_model": "anthropic/claude-opus-5.5",
+      "provider": "Claude Platform on AWS",
+      "input_tokens": 281,
+      "output_tokens": 92,
+      "reasoning_tokens": 81,
+      "cost_usd": 0.002964,
+      "model_id": "anthropic/claude-opus-5.5",
+      "api": "chat",
+      "valid_move": true,
+      "optimal": true
+    }
+  }
+}

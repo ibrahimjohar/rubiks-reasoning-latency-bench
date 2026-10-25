@@ -1,0 +1,3 @@
+-r requirements.txt
+pytest>=8.0
+magiccube>=0.3   # optional: independent cross-check of the cube engine in tests

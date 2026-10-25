@@ -19,3 +19,7 @@ dist/
 Thumbs.db
 .vscode/
 .idea/
+
+# Test / tooling
+.pytest_cache/
+results/runs/*.tmp

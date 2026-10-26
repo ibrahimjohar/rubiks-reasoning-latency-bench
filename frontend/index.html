@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rubik's Cube Race</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+
+<!-- Identity strip: fixed, visible on every view for the whole recording -->
+<header class="identity" id="identity">
+  <div class="identity__who">
+    <span class="identity__name" id="student-name">Ibrahim Johar Farooqi</span>
+    <span class="identity__roll" id="student-roll">23K-0074</span>
+  </div>
+  <div class="identity__title">RUBIK'S CUBE RACE <span>· decision models vs frontier LLM</span></div>
+  <nav class="tabs" id="tabs">
+    <button data-view="race" class="is-active">Race</button>
+    <button data-view="dashboard">Dashboard</button>
+    <button data-view="slide">Results slide</button>
+  </nav>
+</header>
+
+<main>
+  <!-- ============================== RACE ============================== -->
+  <section class="view is-active" id="view-race">
+    <div class="controls">
+      <div class="controls__group">
+        <label>Source
+          <select id="source">
+            <option value="replay">Replay saved run</option>
+            <option value="live">New live run</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="controls__group" id="replay-controls">
+        <label>Run <select id="replay-run"></select></label>
+        <label>Speed
+          <select id="replay-speed">
+            <option value="1">1×</option><option value="2" selected>2×</option>
+            <option value="4">4×</option><option value="8">8×</option><option value="16">16×</option>
+          </select>
+        </label>
+        <label>From puzzle <select id="replay-start"></select></label>
+        <button class="btn btn--go" id="replay-play">Play</button>
+        <button class="btn" id="replay-stop">Stop</button>
+      </div>
+
+      <div class="controls__group is-hidden" id="live-controls">
+        <label>Tier <select id="live-tier"></select></label>
+        <label>Puzzles <input id="live-puzzles" type="number" min="1" value="10"></label>
+        <label>Repeats <input id="live-repeats" type="number" min="1" max="5" value="1"></label>
+        <button class="btn btn--go" id="live-start">Run benchmark</button>
+        <button class="btn btn--stop" id="live-abort" disabled>Abort</button>
+        <span class="live-flag" id="live-flag"></span>
+      </div>
+    </div>
+
+    <div class="puzzle-bar" id="puzzle-bar">
+      <div class="puzzle-bar__start">
+        <div class="net net--small" id="start-net"></div>
+      </div>
+      <div class="puzzle-bar__meta">
+        <div class="kicker" id="pz-kicker">No race loaded</div>
+        <div class="pz-title" id="pz-title">Pick a saved run and press Play, or start a live run.</div>
+        <div class="pz-line" id="pz-scramble"></div>
+        <div class="pz-line" id="pz-optimal"></div>
+      </div>
+      <div class="puzzle-bar__status">
+        <div class="race-clock" id="race-clock">0:00.0</div>
+        <div class="race-state" id="race-state">IDLE</div>
+        <div class="spend" id="spend"></div>
+      </div>
+    </div>
+
+    <div class="grid" id="race-grid"></div>
+  </section>
+
+  <!-- ============================ DASHBOARD =========================== -->
+  <section class="view" id="view-dashboard">
+    <div class="controls">
+      <label>Run <select id="dash-run"></select></label>
+      <span class="hint" id="dash-hint"></span>
+    </div>
+    <div id="dash-body"></div>
+  </section>
+
+  <!-- ============================== SLIDE ============================= -->
+  <section class="view" id="view-slide">
+    <div class="controls">
+      <label>Run <select id="slide-run"></select></label>
+      <button class="btn" id="slide-full">Full screen</button>
+    </div>
+    <div class="slide" id="slide"></div>
+  </section>
+</main>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

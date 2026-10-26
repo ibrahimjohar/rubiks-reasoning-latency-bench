@@ -1,0 +1,380 @@
+{
+  "description": "Fixed-seed benchmark puzzles. Every model receives exactly these states.",
+  "metric": "HTM (half-turn metric: X, X', X2 each count as one move)",
+  "seeds": {
+    "warmup": 101,
+    "primary": 202,
+    "extension": 303
+  },
+  "tiers": {
+    "warmup": [
+      {
+        "id": "warmup-01",
+        "tier": "warmup",
+        "scramble": [
+          "F",
+          "B2",
+          "D2"
+        ],
+        "state": "DDDUUULLLURLURLRLDFFFFFFBBBUUUDDDRRRRLDRLDURLBBBBBBFFF",
+        "shortest_distance": 3,
+        "shortest_solution": [
+          "D2",
+          "F'",
+          "B2"
+        ]
+      },
+      {
+        "id": "warmup-02",
+        "tier": "warmup",
+        "scramble": [
+          "L2",
+          "U'",
+          "B'",
+          "F"
+        ],
+        "state": "LLBUUULLFDFUDRUDRUBBLFFLFFLRRBUDDRRFUBUDLDDLDRFFRBBRBB",
+        "shortest_distance": 4,
+        "shortest_solution": [
+          "F'",
+          "B",
+          "U",
+          "L2"
+        ]
+      },
+      {
+        "id": "warmup-03",
+        "tier": "warmup",
+        "scramble": [
+          "F'",
+          "D",
+          "B"
+        ],
+        "state": "RRFUUURRRDRLDRDFFDFFFFFFLLUDDLDDLLLBULUULUUBBDBBRBBRBB",
+        "shortest_distance": 3,
+        "shortest_solution": [
+          "B'",
+          "D'",
+          "F"
+        ]
+      }
+    ],
+    "primary": [
+      {
+        "id": "primary-01",
+        "tier": "primary",
+        "scramble": [
+          "L",
+          "B",
+          "L'",
+          "F"
+        ],
+        "state": "URRUUUBLLURDURDURFLFFFFFFFFRRRBDDBLLLLDLLDUUDBBBBBBDDR",
+        "shortest_distance": 4,
+        "shortest_solution": [
+          "F'",
+          "L",
+          "B'",
+          "L'"
+        ]
+      },
+      {
+        "id": "primary-02",
+        "tier": "primary",
+        "scramble": [
+          "F",
+          "L",
+          "U'",
+          "L'",
+          "U'"
+        ],
+        "state": "LLBUUBLULFLLURRURRDLDFFFFFFRRRDDDRDDURBBLDBLDUFFBBUBBU",
+        "shortest_distance": 5,
+        "shortest_solution": [
+          "U",
+          "L",
+          "U",
+          "L'",
+          "F'"
+        ]
+      },
+      {
+        "id": "primary-03",
+        "tier": "primary",
+        "scramble": [
+          "B'",
+          "D'",
+          "F",
+          "B"
+        ],
+        "state": "UUBUUUFLLURRURDUBDRFFRFFUFFBRRDDRDDFLLDLLDLFRDBBLBBLBB",
+        "shortest_distance": 4,
+        "shortest_solution": [
+          "F'",
+          "B'",
+          "D",
+          "B"
+        ]
+      },
+      {
+        "id": "primary-04",
+        "tier": "primary",
+        "scramble": [
+          "B'",
+          "F",
+          "L",
+          "D'",
+          "B"
+        ],
+        "state": "UURBUUBLLURFURFBBFLFFUFFURURDRRDRDLLLDDLLLBFFDBBDBBDDR",
+        "shortest_distance": 5,
+        "shortest_solution": [
+          "B'",
+          "D",
+          "L'",
+          "F'",
+          "B"
+        ]
+      },
+      {
+        "id": "primary-05",
+        "tier": "primary",
+        "scramble": [
+          "R'",
+          "L'",
+          "U'",
+          "B'"
+        ],
+        "state": "LLDUUUFFFDFBRRBRRBLLLDFUDFUBDFBDFRRUBBUDLLFLLRUURBBRDD",
+        "shortest_distance": 4,
+        "shortest_solution": [
+          "B",
+          "U",
+          "R",
+          "L"
+        ]
+      },
+      {
+        "id": "primary-06",
+        "tier": "primary",
+        "scramble": [
+          "F'",
+          "L2",
+          "B",
+          "F2",
+          "U'"
+        ],
+        "state": "RUURULRDLFFBLRDLRRULDFFBFFBRRDUDDUUUBBBULDLLDLRDBBBFFF",
+        "shortest_distance": 5,
+        "shortest_solution": [
+          "U",
+          "F2",
+          "B'",
+          "L2",
+          "F"
+        ]
+      },
+      {
+        "id": "primary-07",
+        "tier": "primary",
+        "scramble": [
+          "R2",
+          "U'",
+          "L",
+          "F2"
+        ],
+        "state": "BDDBUUUDLBFBBRRFRRBFUBFULLDUURFDUFDULLRLLRLLFRRDFBDFBD",
+        "shortest_distance": 4,
+        "shortest_solution": [
+          "F2",
+          "L'",
+          "U",
+          "R2"
+        ]
+      },
+      {
+        "id": "primary-08",
+        "tier": "primary",
+        "scramble": [
+          "U",
+          "R2",
+          "F",
+          "R",
+          "D2"
+        ],
+        "state": "UURUURLLBDUUBRRLLUFFRFFUDBBFDDFDDRRBFFDLLDBRRFLLDBBLBU",
+        "shortest_distance": 5,
+        "shortest_solution": [
+          "D2",
+          "R'",
+          "F'",
+          "R2",
+          "U'"
+        ]
+      },
+      {
+        "id": "primary-09",
+        "tier": "primary",
+        "scramble": [
+          "R'",
+          "F'",
+          "L'",
+          "F'"
+        ],
+        "state": "UUBFUBFDDLRRLRRBRRUFFUFFLDDULLBDFBDFBURLLRLLFDBRDBUDBU",
+        "shortest_distance": 4,
+        "shortest_solution": [
+          "F",
+          "L",
+          "F",
+          "R"
+        ]
+      },
+      {
+        "id": "primary-10",
+        "tier": "primary",
+        "scramble": [
+          "D",
+          "F",
+          "D",
+          "L2",
+          "F'"
+        ],
+        "state": "DUUDUUUULFRRDRRUFFFFDFFBFBBRLLUDRBDRRRLDLLDLDBBBBBLUFL",
+        "shortest_distance": 5,
+        "shortest_solution": [
+          "F",
+          "L2",
+          "D'",
+          "F'",
+          "D'"
+        ]
+      }
+    ],
+    "extension": [
+      {
+        "id": "extension-01",
+        "tier": "extension",
+        "scramble": [
+          "F'",
+          "U2",
+          "F2",
+          "B'",
+          "L",
+          "R2",
+          "B",
+          "U2",
+          "F2",
+          "B'",
+          "U'",
+          "R",
+          "L",
+          "B",
+          "D"
+        ],
+        "state": "FBLDUUUDFLRDLRRBFDRRULFUURRLFDDDUUFLRLFBLBRFBFUDBBDBLB",
+        "shortest_distance": null,
+        "shortest_solution": null
+      },
+      {
+        "id": "extension-02",
+        "tier": "extension",
+        "scramble": [
+          "L'",
+          "F2",
+          "U'",
+          "F'",
+          "D'",
+          "R'",
+          "F",
+          "D",
+          "R",
+          "F'",
+          "B'",
+          "U",
+          "F2",
+          "R'",
+          "D2"
+        ],
+        "state": "LUDDURFDRBURURBBLRLRDFFLBBLLRULDBUDBFFUFLRFFDFBDDBUULR",
+        "shortest_distance": null,
+        "shortest_solution": null
+      },
+      {
+        "id": "extension-03",
+        "tier": "extension",
+        "scramble": [
+          "B",
+          "R2",
+          "F2",
+          "B2",
+          "R'",
+          "B",
+          "U2",
+          "R2",
+          "L",
+          "U'",
+          "D'",
+          "F'",
+          "R2",
+          "U2",
+          "L'"
+        ],
+        "state": "DRBLUDUFFDFLRRUFUURLLUFDUBDFURDDRDBRRBFFLFLLLUBBLBRBDB",
+        "shortest_distance": null,
+        "shortest_solution": null
+      },
+      {
+        "id": "extension-04",
+        "tier": "extension",
+        "scramble": [
+          "R",
+          "D'",
+          "R'",
+          "F2",
+          "U",
+          "B'",
+          "U",
+          "F2",
+          "B2",
+          "U",
+          "F2",
+          "B'",
+          "R2",
+          "L",
+          "U'"
+        ],
+        "state": "UDLUUURRDLBUURLUDRBBFUFRLBLDLFFDBRDFRLDFLFBRBBRFFBDDLU",
+        "shortest_distance": null,
+        "shortest_solution": null
+      },
+      {
+        "id": "extension-05",
+        "tier": "extension",
+        "scramble": [
+          "B'",
+          "R'",
+          "U2",
+          "B",
+          "L'",
+          "R'",
+          "F",
+          "B'",
+          "L2",
+          "D2",
+          "B'",
+          "L'",
+          "D'",
+          "U'",
+          "B",
+          "L2",
+          "U",
+          "B'"
+        ],
+        "state": "RRDBUUDLDFBLLRRBDBRDRRFBFLUDFRDDRLULFDBULBFFLBUUFBFULU",
+        "shortest_distance": null,
+        "shortest_solution": null
+      }
+    ]
+  }
+}

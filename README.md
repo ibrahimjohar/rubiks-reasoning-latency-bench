@@ -171,7 +171,7 @@ The four models play each puzzle at the same time. Each is timed on its own cloc
 5. A 401, 402 or 403 aborts the whole run instead of being recorded as a model's mistake. A 400 is never retried.
 6. Tests use scripted offline players, and the application itself only runs live. Every saved run records its full rules snapshot and spend.
 
-Reported spend was $0.2887 for the warm-up and $2.6570 for the primary run, $2.9457 in total. Opus accounted for $2.8490 of that. The two saved pilots cost another $0.4025.
+Reported spend was $0.2887 for the warm-up and $2.6570 for the primary run, $2.9457 in total. Opus accounted for $2.8491 of that. The two saved pilots cost another $0.4025.
 
 ## Pilot: state format
 

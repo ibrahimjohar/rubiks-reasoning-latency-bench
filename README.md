@@ -75,16 +75,18 @@ In v1, Opus ran at reasoning effort `low` with `max_tokens` 1024. Its median rea
 
 I also found a state bug after the runs. The move history was sent as `recent_moves` with no explanation, and Opus read it as the scramble and undid its own moves. Its saved reasoning on one turn says: "I'm tracing back the recent moves, F', F, L, L', F', which net out to just F', so undoing that would take an F." The letters "scrambl" appear in the reasoning of 103 of its 300 primary turns. All four models saw the same state, so the bug applied to all of them.
 
-For v2 I renamed the field to `moves_you_have_played`, and the format note now says these are the model's own moves, already applied. I also restored the face orientation in words (which edge is each face's top row and left column). It had been dropped along with the face grids that Luna refused.
+For v2 I renamed the field to `moves_you_have_played`, and the format note now says these are the model's own moves, already applied.
 
-I then ran two Opus-only pilots at medium effort, with `max_tokens` 8000 and a 300 s timeout. Each sent 2 probes for each of 3 primary puzzles: the starting state and the state after one exact optimal move.
+I ran two Opus-only pilots at medium effort, with `max_tokens` 8000 and a 300 s timeout, one before the move-history fix and one after it. Each sent 2 probes for each of 3 primary puzzles: the starting state and the state after one exact optimal move.
 
 | Pilot | Stage | Optimal moves | Undid its own move (mid-game) | Median reasoning tokens | Cut off | Errors | Cost |
 |---|---|---|---|---|---|---|---|
-| [`20261109T203729Z`](results/pilots/pilot_20261109T203729Z_medium.json) | before the wording fix | 2/6 (33%) | 2/3 (67%) | 1439 | 0 | 0 | $0.2062 |
-| [`20261109T204813Z`](results/pilots/pilot_20261109T204813Z_medium.json) | after the wording fix | 2/6 (33%) | 0/3 (0%) | 1534.5 | 0 | 0 | $0.1963 |
+| [`20261109T203729Z`](results/pilots/pilot_20261109T203729Z_medium.json) | before the move-history fix | 2/6 (33%) | 2/3 (67%) | 1439 | 0 | 0 | $0.2062 |
+| [`20261109T204813Z`](results/pilots/pilot_20261109T204813Z_medium.json) | after the move-history fix | 2/6 (33%) | 0/3 (0%) | 1534.5 | 0 | 0 | $0.1963 |
 
-The fix stopped the undoing on these probes, but accuracy did not improve. Opus opened with `F'` on all 3 puzzles in both pilots and missed all 3 mid-game probes each time. With 3 mid-game probes per pilot, this is a small check. The account then ran out of credit, so I did not run v2.
+Opus undid its own move less often after the fix, but accuracy did not improve. It opened with `F'` on all 3 puzzles in both pilots and missed all 3 mid-game probes each time. With 3 mid-game probes per pilot, this is a small check.
+
+After both saved pilots I also restored the face orientation in the format note, in words (which edge is each face's top row and left column). It had been dropped along with the face grids that Luna refused. This later change is in the v2 code and was never tested, because the account ran out of credit. For the same reason I did not run v2.
 
 ## Limitations
 

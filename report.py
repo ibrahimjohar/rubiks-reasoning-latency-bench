@@ -17,6 +17,9 @@ from backend.app.rules import MODEL_BY_KEY
 
 OUT = Path(__file__).resolve().parent / "results"
 
+# Runs played before the move history was renamed and explained in the state.
+V1_RUNS = {"20261109T154553Z-47d5b3", "20261109T161544Z-dceb5d"}
+
 
 def pick_runs(ids: list[str]) -> list[dict]:
     if ids:
@@ -33,9 +36,14 @@ def na(v, f=".1f", suffix=""):
     return "N/A" if v is None else f"{format(v, f)}{suffix}"
 
 
+def state_version(run_id: str) -> str:
+    return "v1" if run_id in V1_RUNS else "v2"
+
+
 def tier_markdown(st: dict) -> str:
     rows = [
-        f"### {st['tier'].capitalize()} tier ({st['games']} puzzles, run `{st['run_id']}`)",
+        f"### {st['tier'].capitalize()} {state_version(st['run_id'])} "
+        f"({st['games']} puzzles, run `{st['run_id']}`)",
         "",
         "| Model | Avg latency / move | Avg time / puzzle | Total time | Avg moves | Total moves "
         "| Solved | Success rate | Avg optimality gap | Optimal solves | Optimal-move rate "

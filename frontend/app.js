@@ -88,21 +88,21 @@ function buildCards() {
       <div class="card__head">
         <span class="card__name">${esc(m.name)}</span>
         <span class="badge ${m.api === "chat" ? "badge--llm" : ""}">${m.api === "chat" ? "Frontier LLM" : "Decision model"}</span>
-        <span class="status" id="st-${m.key}">WAITING</span>
+        <span class="status" id="st-${m.key}">Waiting</span>
         <span class="rank" id="rk-${m.key}"></span>
       </div>
       <div class="card__cube"><div class="net net--big" id="net-${m.key}">${netHTML(SOLVED)}</div></div>
       <div class="card__body">
         <div class="now">
-          <div class="now__move" id="mv-${m.key}">—</div>
-          <div><div class="now__label">Current move</div><div class="note" id="nt-${m.key}">${esc(m.id)}</div></div>
+          <div class="now__move is-empty" id="mv-${m.key}">none yet</div>
+          <div><div class="now__label">Current move</div><div class="note" id="nt-${m.key}"></div></div>
         </div>
         <div class="stats">
           <div class="stat"><div class="stat__k">Time</div><div class="stat__v" id="tm-${m.key}">0:00.0</div></div>
           <div class="stat"><div class="stat__k">Moves</div><div class="stat__v" id="mc-${m.key}">0 / ${S.config.rules.max_moves}</div></div>
-          <div class="stat"><div class="stat__k">Last latency</div><div class="stat__v" id="lt-${m.key}">—</div></div>
-          <div class="stat"><div class="stat__k">Avg latency</div><div class="stat__v" id="al-${m.key}">—</div></div>
-          <div class="stat"><div class="stat__k">Stickers correct</div><div class="stat__v" id="sc-${m.key}">— / 54</div></div>
+          <div class="stat"><div class="stat__k">Last latency</div><div class="stat__v" id="lt-${m.key}">-</div></div>
+          <div class="stat"><div class="stat__k">Avg latency</div><div class="stat__v" id="al-${m.key}">-</div></div>
+          <div class="stat"><div class="stat__k">Stickers correct</div><div class="stat__v" id="sc-${m.key}">- / 54</div></div>
         </div>
         <div class="history" id="hs-${m.key}"></div>
       </div>
@@ -111,7 +111,7 @@ function buildCards() {
 
 function chip(step) {
   if (step.outcome === "malformed") return `<span class="chip chip--bad" title="${esc(step.error)}">bad</span>`;
-  if (step.outcome === "error") return `<span class="chip chip--err" title="${esc(step.error)}">ERR</span>`;
+  if (step.outcome === "error") return `<span class="chip chip--err" title="${esc(step.error)}">err</span>`;
   return `<span class="chip ${step.was_optimal ? "chip--opt" : ""}">${esc(step.move)}</span>`;
 }
 
@@ -122,7 +122,7 @@ function renderGame(run, gi, tau, live) {
   const maxMoves = run.rules.max_moves;
   $("#start-net").innerHTML = netHTML(pz.state);
   $("#pz-kicker").textContent =
-    `${live ? "LIVE" : "REPLAY"} · ${run.tier} tier · puzzle ${gi + 1} of ${run.games.length}`;
+    `${live ? "Live" : "Replay"} · ${run.tier} tier · puzzle ${gi + 1} of ${run.games.length}`;
   $("#pz-title").textContent = `${pz.id}${game.repeat ? ` (repeat ${game.repeat + 1})` : ""}`;
   $("#pz-scramble").innerHTML = `Scramble <b>${esc(pz.scramble.join(" "))}</b>`;
   $("#pz-optimal").innerHTML = pz.shortest_distance != null
@@ -150,7 +150,8 @@ function renderGame(run, gi, tau, live) {
 
     $(`#net-${m.key}`).innerHTML = netHTML(state);
     const mv = $(`#mv-${m.key}`);
-    mv.textContent = last ? (last.outcome === "ok" ? last.move : last.outcome === "malformed" ? "BAD" : "ERR") : "—";
+    mv.textContent = last ? (last.outcome === "ok" ? last.move : last.outcome === "malformed" ? "bad" : "err") : "none yet";
+    mv.classList.toggle("is-empty", !last);
     mv.classList.toggle("is-bad", !!last && last.outcome !== "ok");
 
     const finishMs = t.steps.length ? t.steps[t.steps.length - 1].t_end_ms : 0;
@@ -161,12 +162,12 @@ function renderGame(run, gi, tau, live) {
     $(`#tm-${m.key}`).textContent = fmtClock(clock);
     $(`#mc-${m.key}`).textContent = `${steps.length} / ${maxMoves}`;
     const lats = steps.map((s) => s.latency_ms).filter((x) => x != null);
-    $(`#lt-${m.key}`).textContent = last && last.latency_ms != null ? `${Math.round(last.latency_ms)} ms` : "—";
-    $(`#al-${m.key}`).textContent = lats.length ? `${Math.round(lats.reduce((a, b) => a + b, 0) / lats.length)} ms` : "—";
+    $(`#lt-${m.key}`).textContent = last && last.latency_ms != null ? `${Math.round(last.latency_ms)} ms` : "-";
+    $(`#al-${m.key}`).textContent = lats.length ? `${Math.round(lats.reduce((a, b) => a + b, 0) / lats.length)} ms` : "-";
     $(`#hs-${m.key}`).innerHTML = steps.map(chip).join("");
     $(`#sc-${m.key}`).textContent = `${stickersCorrect(state)} / 54`;
 
-    let note = m.id;
+    let note = "";
     if (last) {
       if (last.outcome !== "ok") note = last.error || last.outcome;
       else if (last.confidence != null) note = `confidence ${(last.confidence * 100).toFixed(0)}%`;
@@ -179,8 +180,8 @@ function renderGame(run, gi, tau, live) {
 
     const st = $(`#st-${m.key}`);
     const erred = status === "playing" && !!last && last.outcome === "error";
-    const label = erred ? "ERROR" : { solved: "SOLVED", out_of_moves: "MOVE LIMIT", aborted: "ABORTED",
-                    playing: "THINKING", pending: "WAITING" }[status] || status.toUpperCase();
+    const label = erred ? "Error" : { solved: "Solved", out_of_moves: "Move limit", aborted: "Aborted",
+                    playing: "Thinking", pending: "Waiting" }[status] || status;
     st.textContent = label;
     st.className = "status " + (erred ? "status--error" : { solved: "status--solved", out_of_moves: "status--out",
                                   aborted: "status--aborted", playing: "status--playing" }[status] || "");
@@ -219,7 +220,7 @@ async function startReplay() {
   const run = await api(`/api/runs/${id}`);
   Object.assign(S.race, { run, game: Number($("#replay-start").value || 0), tau: 0,
                           playing: true, speed: Number($("#replay-speed").value), last: performance.now(), hold: 0 });
-  setRaceState("RACING", "is-running");
+  setRaceState("Racing", "is-running");
   S.race.raf = requestAnimationFrame(tick);
 }
 function stopReplay() {
@@ -235,10 +236,10 @@ function tick(now) {
   const end = gameEnd(R.run, R.game);
   if (R.tau < end) {
     R.tau = Math.min(end, R.tau + dt * R.speed);
-    setRaceState("RACING", "is-running");
+    setRaceState("Racing", "is-running");
   } else {
     R.hold += dt;                                  // completion stage stays on screen
-    setRaceState(R.game + 1 < R.run.games.length ? "PUZZLE COMPLETE" : "RACE COMPLETE", "is-done");
+    setRaceState(R.game + 1 < R.run.games.length ? "Puzzle complete" : "Race complete", "is-done");
     if (R.hold > 2500 && R.game + 1 < R.run.games.length) {
       R.game += 1; R.tau = 0; R.hold = 0;
     } else if (R.hold > 2500) {
@@ -272,7 +273,7 @@ async function startLive() {
   Object.assign(S.race, { live: true, liveGame: -1, run: null, id: started.id });
   $("#live-abort").disabled = false;
   $("#live-start").disabled = true;
-  $("#live-flag").textContent = `LIVE · run ${started.id}`;
+  $("#live-flag").textContent = `Live run ${started.id}`;
   $("#live-flag").classList.add("is-on");
   pollLive();
 }
@@ -287,13 +288,13 @@ async function pollLive() {
     const playing = Object.values(run.games[run.current_game].trials).some((t) => t.status === "playing");
     $("#race-clock").textContent = fmtClock(playing ? Date.now() - R.liveStart : gameEnd(run, run.current_game));
     if (run.status === "running") {
-      setRaceState(playing ? "RACING" : "NEXT PUZZLE", "is-running");
+      setRaceState(playing ? "Racing" : "Next puzzle", "is-running");
       R.poll = setTimeout(pollLive, 600);
       return;
     }
-    setRaceState(run.status === "completed" ? "RACE COMPLETE" : `ABORTED: ${run.abort_reason}`, "is-done");
+    setRaceState(run.status === "completed" ? "Race complete" : `Aborted: ${run.abort_reason}`, "is-done");
   } catch (e) {
-    setRaceState(`ERROR: ${e.message}`, "is-done");
+    setRaceState(`Error: ${e.message}`, "is-done");
   }
   R.live = false;
   $("#live-abort").disabled = true;
@@ -305,7 +306,7 @@ async function pollLive() {
 /* ------------------------------------------------------------------ dashboard */
 const modelName = (k) => (S.config.models.find((m) => m.key === k) || { name: k }).name;
 
-function bars(title, rows, key, { digits = 0, suffix = "", lowerBetter = false, scale = null } = {}) {
+function bars(title, rows, key, { digits = 0, suffix = "", scale = null } = {}) {
   const vals = rows.map((r) => r[key]).filter((v) => v != null);
   const max = scale ?? Math.max(...vals, 1e-9);
   return `<div class="panel"><h3>${title}</h3><div class="bars">${rows.map((r) => {
@@ -314,7 +315,7 @@ function bars(title, rows, key, { digits = 0, suffix = "", lowerBetter = false, 
     return `<div class="bar__row"><span class="bar__label">${esc(modelName(r.model))}</span>
       <span class="bar__track"><span class="bar__fill" data-m="${esc(r.model)}" style="width:${pct}%"></span></span>
       <span class="bar__val">${na(v, digits, suffix)}</span></div>`;
-  }).join("")}</div>${lowerBetter ? `<div class="meta-line">Lower is better</div>` : ""}</div>`;
+  }).join("")}</div></div>`;
 }
 
 // Nearest-rank p95 over the same completed trials stats.py uses. Display only.
@@ -347,9 +348,9 @@ async function renderDashboard() {
       <td>${m.avg_optimality_gap == null ? "N/A" : `+${m.avg_optimality_gap.toFixed(2)} (n=${m.gap_n})`}</td>
       <td>${na(m.optimal_move_rate_pct, 1, "%")}</td><td>${m.malformed}</td><td>${m.errors}</td>
       <td>$${m.cost_usd.toFixed(4)}</td></tr>`).join("")}
-      <tr class="is-ref"><td>Random baseline</td><td>—</td><td>${na(st.random_baseline.success_rate_pct, 2, "%")}</td>
-      <td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>
-      <td>${na(st.random_baseline.optimal_move_rate_pct_first_turn, 1, "%")}*</td><td>—</td><td>—</td><td>$0</td></tr>
+      <tr class="is-ref"><td>Random baseline</td><td></td><td>${na(st.random_baseline.success_rate_pct, 2, "%")}</td>
+      <td></td><td></td><td></td><td></td><td></td><td></td>
+      <td>${na(st.random_baseline.optimal_move_rate_pct_first_turn, 1, "%")}*</td><td></td><td></td><td>$0</td></tr>
     </tbody></table></div>
     <div class="meta-line">Gap = moves used − exact shortest, solved trials only. Every turn counts as a move,
       including malformed replies and failed requests. *Random: share of optimal moves from each puzzle's start state.
@@ -360,7 +361,7 @@ async function renderDashboard() {
   const matrix = `<div class="panel"><h3>Per puzzle</h3><div class="tbl-wrap"><table class="tbl">
     <thead><tr><th>Puzzle</th><th>Shortest</th>${S.config.models.map((m) => `<th>${esc(m.name)}</th>`).join("")}</tr></thead>
     <tbody>${run.games.map((g) => `<tr><td>${esc(g.puzzle.id)}${g.repeat ? ` r${g.repeat + 1}` : ""}</td>
-      <td>${g.puzzle.shortest_distance ?? "—"}</td>${S.config.models.map((m) => {
+      <td>${g.puzzle.shortest_distance ?? "-"}</td>${S.config.models.map((m) => {
         const t = g.trials[m.key];
         if (t.status === "solved") {
           const gap = g.puzzle.shortest_distance != null ? ` (+${t.turns - g.puzzle.shortest_distance})` : "";
@@ -370,10 +371,16 @@ async function renderDashboard() {
         return `<td>${esc(t.status)}</td>`;
       }).join("")}</tr>`).join("")}</tbody></table></div></div>`;
 
+  // Charts with nothing to show are replaced by one sentence.
+  const anySolved = ms.some((m) => m.solved > 0);
+  const quality = anySolved
+    ? `${bars("Success rate", ms, "success_rate_pct", { digits: 1, suffix: "%", scale: 100 })}
+       ${bars("Optimality gap (moves over the optimum)", ms, "avg_optimality_gap", { digits: 2 })}`
+    : `<div class="panel panel--note"><h3>Success and optimality gap</h3>
+       <p>No model solved a ${esc(st.tier)} puzzle, so there is no success rate or gap to chart.</p></div>`;
   $("#dash-body").innerHTML = `<div class="dash-grid">
-      ${bars("Avg latency per move (ms)", ms, "avg_latency_ms", { lowerBetter: true })}
-      ${bars("Success rate", ms, "success_rate_pct", { digits: 1, suffix: "%", scale: 100 })}
-      ${bars("Optimality gap (moves)", ms, "avg_optimality_gap", { digits: 2, lowerBetter: true })}
+      ${bars("Avg latency per move (ms)", ms, "avg_latency_ms")}
+      ${quality}
     </div>${table}${matrix}`;
 }
 
@@ -468,7 +475,7 @@ async function init() {
   });
   $("#replay-run").addEventListener("change", fillStartPuzzles);
   $("#replay-play").addEventListener("click", () => startReplay().catch((e) => alert(e.message)));
-  $("#replay-stop").addEventListener("click", () => { stopReplay(); setRaceState("PAUSED"); });
+  $("#replay-stop").addEventListener("click", () => { stopReplay(); setRaceState("Paused"); });
   $("#replay-speed").addEventListener("change", (e) => (S.race.speed = Number(e.target.value)));
   $("#live-start").addEventListener("click", startLive);
   $("#live-abort").addEventListener("click", async () => {

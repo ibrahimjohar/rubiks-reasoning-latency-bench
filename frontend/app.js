@@ -31,6 +31,12 @@ const S = {
 // Net layout on a 12 x 9 grid: U above F, then L F R B, D below F.
 const NET_ORIGIN = { U: [0, 3], L: [3, 0], F: [3, 3], R: [3, 6], B: [3, 9], D: [6, 3] };
 const FACE_ORDER = "URFDLB";
+// Display only: never feeds the statistics.
+function stickersCorrect(state) {
+  let n = 0;
+  for (let i = 0; i < 54; i++) if (state[i] === FACE_ORDER[Math.floor(i / 9)]) n++;
+  return n;
+}
 function netHTML(state) {
   const cells = [];
   for (let f = 0; f < 6; f++) {
@@ -95,6 +101,7 @@ function buildCards() {
           <div class="stat"><div class="stat__k">Moves</div><div class="stat__v" id="mc-${m.key}">0 / ${S.config.rules.max_moves}</div></div>
           <div class="stat"><div class="stat__k">Last latency</div><div class="stat__v" id="lt-${m.key}">—</div></div>
           <div class="stat"><div class="stat__k">Avg latency</div><div class="stat__v" id="al-${m.key}">—</div></div>
+          <div class="stat"><div class="stat__k">Stickers correct</div><div class="stat__v" id="sc-${m.key}">— / 54</div></div>
         </div>
         <div class="history" id="hs-${m.key}"></div>
       </div>
@@ -102,7 +109,7 @@ function buildCards() {
 }
 
 function chip(step) {
-  if (step.outcome === "malformed") return `<span class="chip chip--bad" title="${esc(step.error)}">✕</span>`;
+  if (step.outcome === "malformed") return `<span class="chip chip--bad" title="${esc(step.error)}">bad</span>`;
   if (step.outcome === "error") return `<span class="chip chip--err" title="${esc(step.error)}">ERR</span>`;
   return `<span class="chip ${step.was_optimal ? "chip--opt" : ""}">${esc(step.move)}</span>`;
 }
@@ -114,14 +121,21 @@ function renderGame(run, gi, tau, live) {
   const maxMoves = run.rules.max_moves;
   $("#start-net").innerHTML = netHTML(pz.state);
   $("#pz-kicker").textContent =
-    `${run.tier} tier · puzzle ${gi + 1} of ${run.games.length}${live ? " · LIVE" : " · replay"}`;
+    `${live ? "LIVE" : "REPLAY"} · ${run.tier} tier · puzzle ${gi + 1} of ${run.games.length}`;
   $("#pz-title").textContent = `${pz.id}${game.repeat ? ` (repeat ${game.repeat + 1})` : ""}`;
   $("#pz-scramble").innerHTML = `Scramble <b>${esc(pz.scramble.join(" "))}</b>`;
   $("#pz-optimal").innerHTML = pz.shortest_distance != null
     ? `Exact shortest solution <b>${pz.shortest_distance} moves</b> · ${esc(pz.shortest_solution.join(" "))}`
     : `Exact shortest solution: beyond exact search (extension tier)`;
-  $("#spend").textContent =
-    `spend $${(run.spend.reported_cost_usd || 0).toFixed(4)} · ${run.spend.turns} turns`;
+  // A replay shows spend up to this moment; a live run shows the runner's own total.
+  let spent = run.spend.reported_cost_usd || 0, turns = run.spend.turns;
+  if (!live) {
+    const shown = run.games.flatMap((g, i) => (i > gi ? [] : Object.values(g.trials).flatMap((t) =>
+      i < gi ? t.steps : t.steps.filter((s) => s.t_end_ms <= tau))));
+    spent = shown.reduce((a, s) => a + (s.cost_usd || 0), 0);
+    turns = shown.length;
+  }
+  $("#spend").textContent = `spend $${spent.toFixed(4)} · ${turns} turns`;
 
   const finishes = [];
   for (const m of S.config.models) {
@@ -135,7 +149,7 @@ function renderGame(run, gi, tau, live) {
 
     $(`#net-${m.key}`).innerHTML = netHTML(state);
     const mv = $(`#mv-${m.key}`);
-    mv.textContent = last ? (last.outcome === "ok" ? last.move : last.outcome === "malformed" ? "✕" : "ERR") : "—";
+    mv.textContent = last ? (last.outcome === "ok" ? last.move : last.outcome === "malformed" ? "BAD" : "ERR") : "—";
     mv.classList.toggle("is-bad", !!last && last.outcome !== "ok");
 
     const finishMs = t.steps.length ? t.steps[t.steps.length - 1].t_end_ms : 0;
@@ -149,6 +163,7 @@ function renderGame(run, gi, tau, live) {
     $(`#lt-${m.key}`).textContent = last && last.latency_ms != null ? `${Math.round(last.latency_ms)} ms` : "—";
     $(`#al-${m.key}`).textContent = lats.length ? `${Math.round(lats.reduce((a, b) => a + b, 0) / lats.length)} ms` : "—";
     $(`#hs-${m.key}`).innerHTML = steps.map(chip).join("");
+    $(`#sc-${m.key}`).textContent = `${stickersCorrect(state)} / 54`;
 
     let note = m.id;
     if (last) {
@@ -162,10 +177,11 @@ function renderGame(run, gi, tau, live) {
     $(`#nt-${m.key}`).textContent = note;
 
     const st = $(`#st-${m.key}`);
-    const label = { solved: "SOLVED", out_of_moves: "MOVE LIMIT", aborted: "ABORTED",
+    const erred = status === "playing" && !!last && last.outcome === "error";
+    const label = erred ? "ERROR" : { solved: "SOLVED", out_of_moves: "MOVE LIMIT", aborted: "ABORTED",
                     playing: "THINKING", pending: "WAITING" }[status] || status.toUpperCase();
     st.textContent = label;
-    st.className = "status " + ({ solved: "status--solved", out_of_moves: "status--out",
+    st.className = "status " + (erred ? "status--error" : { solved: "status--solved", out_of_moves: "status--out",
                                   aborted: "status--aborted", playing: "status--playing" }[status] || "");
     const card = $(`#card-${m.key}`);
     card.classList.toggle("is-playing", status === "playing");
@@ -286,17 +302,29 @@ async function pollLive() {
 }
 
 /* ------------------------------------------------------------------ dashboard */
-function bars(title, rows, key, { digits = 0, suffix = "", lowerBetter = false } = {}) {
+const modelName = (k) => (S.config.models.find((m) => m.key === k) || { name: k }).name;
+
+function bars(title, rows, key, { digits = 0, suffix = "", lowerBetter = false, scale = null } = {}) {
   const vals = rows.map((r) => r[key]).filter((v) => v != null);
-  const max = Math.max(...vals, 1e-9);
+  const max = scale ?? Math.max(...vals, 1e-9);
   return `<div class="panel"><h3>${title}</h3><div class="bars">${rows.map((r) => {
     const m = S.config.models.find((x) => x.key === r.model);
     const v = r[key];
-    const pct = v == null ? 0 : Math.max(2, (v / max) * 100);
-    return `<div class="bar__row"><span class="bar__label">${esc(m ? m.name : r.model)}</span>
-      <span class="bar__track"><span class="bar__fill ${m && m.api === "chat" ? "bar__fill--llm" : "bar__fill--dec"}" style="width:${pct}%;display:block"></span></span>
+    const pct = v ? Math.max(2, (v / max) * 100) : 0;
+    return `<div class="bar__row"><span class="bar__label">${esc(modelName(r.model))}</span>
+      <span class="bar__track"><span class="bar__fill ${m && m.api === "chat" ? "bar__fill--llm" : ""}" style="width:${pct}%"></span></span>
       <span class="bar__val">${na(v, digits, suffix)}</span></div>`;
-  }).join("")}</div>${lowerBetter ? `<div class="meta-line">lower is better</div>` : ""}</div>`;
+  }).join("")}</div>${lowerBetter ? `<div class="meta-line">Lower is better</div>` : ""}</div>`;
+}
+
+// Nearest-rank p95 over the same completed trials stats.py uses. Display only.
+function p95Latency(run, key) {
+  const xs = run.games.map((g) => g.trials[key])
+    .filter((t) => ["solved", "out_of_moves"].includes(t.status))
+    .flatMap((t) => t.steps.map((s) => s.latency_ms))
+    .filter((x) => x != null)
+    .sort((a, b) => a - b);
+  return xs.length ? xs[Math.ceil(0.95 * xs.length) - 1] : null;
 }
 
 async function renderDashboard() {
@@ -306,89 +334,106 @@ async function renderDashboard() {
   const ms = st.models;
   $("#dash-hint").textContent =
     `${st.tier} · ${st.games} puzzles · ${st.status} · reported spend $${st.spend.reported_cost_usd.toFixed(4)}`;
-  const name = (k) => S.config.models.find((m) => m.key === k).name;
+  const luna = ms.find((m) => /luna/i.test(modelName(m.model)));
+  const aborted = ms.reduce((a, m) => a + m.aborted_trials, 0);
 
-  const table = `<div class="panel"><h3>Benchmark statistics</h3><div class="tbl-wrap"><table class="tbl">
-    <thead><tr><th>Model</th><th>Avg latency / move</th><th>Avg time / puzzle</th><th>Total time</th>
-      <th>Avg moves</th><th>Total moves</th><th>Success rate</th><th>Avg optimality gap</th>
-      <th>Optimal-move rate</th><th>Malformed</th><th>Errors</th><th>Retries</th><th>Cost</th></tr></thead>
+  const table = `<div class="panel"><h3>Summary</h3><div class="tbl-wrap"><table class="tbl">
+    <thead><tr><th>Model</th><th>Solved</th><th>Success</th><th>Avg latency</th><th>Median</th><th>p95</th>
+      <th>Total time</th><th>Avg moves</th><th>Gap</th><th>Optimal moves</th><th>Malformed</th><th>Errors</th><th>Cost</th></tr></thead>
     <tbody>${ms.map((m) => `<tr>
-      <td>${esc(name(m.model))}</td><td>${na(m.avg_latency_ms, 0, " ms")}</td>
-      <td>${na(m.avg_trial_time_s, 1, " s")}</td><td>${na(m.total_time_s, 1, " s")}</td>
-      <td>${na(m.avg_moves)}</td><td>${m.total_moves}</td>
-      <td>${na(m.success_rate_pct, 1, "%")} <span style="color:var(--ink-3)">(${m.solved}/${m.trials})</span></td>
+      <td>${esc(modelName(m.model))}</td><td>${m.solved}/${m.trials}</td><td>${na(m.success_rate_pct, 1, "%")}</td>
+      <td>${na(m.avg_latency_ms, 0, " ms")}</td><td>${na(m.median_latency_ms, 0, " ms")}</td><td>${na(p95Latency(run, m.model), 0, " ms")}</td>
+      <td>${na(m.total_time_s, 1, " s")}</td><td>${na(m.avg_moves)}</td>
       <td>${m.avg_optimality_gap == null ? "N/A" : `+${m.avg_optimality_gap.toFixed(2)} (n=${m.gap_n})`}</td>
       <td>${na(m.optimal_move_rate_pct, 1, "%")}</td><td>${m.malformed}</td><td>${m.errors}</td>
-      <td>${m.retries}</td><td>$${m.cost_usd.toFixed(4)}</td></tr>`).join("")}
-      <tr class="is-ref"><td>Random moves (baseline)</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>
-      <td>${na(st.random_baseline.success_rate_pct, 2, "%")}</td><td>—</td>
-      <td>${na(st.random_baseline.optimal_move_rate_pct_first_turn, 1, "%")}*</td><td>—</td><td>—</td><td>—</td><td>$0</td></tr>
+      <td>$${m.cost_usd.toFixed(4)}</td></tr>`).join("")}
+      <tr class="is-ref"><td>Random baseline</td><td>—</td><td>${na(st.random_baseline.success_rate_pct, 2, "%")}</td>
+      <td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td>
+      <td>${na(st.random_baseline.optimal_move_rate_pct_first_turn, 1, "%")}*</td><td>—</td><td>—</td><td>$0</td></tr>
     </tbody></table></div>
-    <div class="meta-line">Gap = moves used − exact shortest, solved trials only (unsolved = N/A). Every turn counts as a move,
-      including malformed replies and failed requests. *random: share of optimal moves from each puzzle's start state.
-      Aborted trials excluded: ${ms.map((m) => m.aborted_trials).reduce((a, b) => a + b, 0)}.</div></div>`;
+    <div class="meta-line">Gap = moves used − exact shortest, solved trials only. Every turn counts as a move,
+      including malformed replies and failed requests. *Random: share of optimal moves from each puzzle's start state.
+      Aborted trials excluded: ${aborted}.</div>
+    <div class="meta-line">Caveat: ${st.games} puzzles in this run, so differences are indicative only.${luna
+      ? ` ${esc(modelName(luna.model))} had ${luna.errors} request errors (refusals included), each counted as a used move.` : ""}</div></div>`;
 
-  const matrix = `<div class="panel" style="margin-top:14px"><h3>Per-puzzle results</h3><div class="tbl-wrap"><table class="tbl">
+  const matrix = `<div class="panel"><h3>Per puzzle</h3><div class="tbl-wrap"><table class="tbl">
     <thead><tr><th>Puzzle</th><th>Shortest</th>${S.config.models.map((m) => `<th>${esc(m.name)}</th>`).join("")}</tr></thead>
     <tbody>${run.games.map((g) => `<tr><td>${esc(g.puzzle.id)}${g.repeat ? ` r${g.repeat + 1}` : ""}</td>
       <td>${g.puzzle.shortest_distance ?? "—"}</td>${S.config.models.map((m) => {
         const t = g.trials[m.key];
         if (t.status === "solved") {
-          const gap = g.puzzle.shortest_distance != null ? ` (gap +${t.turns - g.puzzle.shortest_distance})` : "";
-          return `<td class="cell-ok">✓ ${t.turns}${gap}</td>`;
+          const gap = g.puzzle.shortest_distance != null ? ` (+${t.turns - g.puzzle.shortest_distance})` : "";
+          return `<td class="cell-ok">${t.turns}${gap}</td>`;
         }
-        if (t.status === "out_of_moves") return `<td class="cell-no">✕ limit</td>`;
+        if (t.status === "out_of_moves") return `<td class="cell-no">limit</td>`;
         return `<td>${esc(t.status)}</td>`;
       }).join("")}</tr>`).join("")}</tbody></table></div></div>`;
 
   $("#dash-body").innerHTML = `<div class="dash-grid">
       ${bars("Avg latency per move (ms)", ms, "avg_latency_ms", { lowerBetter: true })}
-      ${bars("Success rate (%)", ms, "success_rate_pct", { digits: 1, suffix: "%" })}
-      ${bars("Avg moves per puzzle", ms, "avg_moves", { digits: 1, lowerBetter: true })}
+      ${bars("Success rate", ms, "success_rate_pct", { digits: 1, suffix: "%", scale: 100 })}
+      ${bars("Optimality gap (moves)", ms, "avg_optimality_gap", { digits: 2, lowerBetter: true })}
     </div>${table}${matrix}`;
 }
 
 /* ------------------------------------------------------------------ slide */
+// The four short answers are derived from the run's stats, never written by hand.
+function slideAnswers(models) {
+  const list = (ms) => ms.map((m) => modelName(m.model)).join(", ");
+  const timed = models.filter((m) => m.avg_latency_ms != null);
+  const fastest = timed.length ? timed.reduce((a, b) => (b.avg_latency_ms < a.avg_latency_ms ? b : a)) : null;
+  const topRate = Math.max(...models.map((m) => m.success_rate_pct ?? 0));
+  const top = models.filter((m) => m.solved > 0 && m.success_rate_pct === topRate);
+  const gapped = models.filter((m) => m.avg_optimality_gap != null);
+  const minGap = gapped.length ? Math.min(...gapped.map((m) => m.avg_optimality_gap)) : null;
+  const shortest = gapped.filter((m) => m.avg_optimality_gap === minGap);
+
+  let quality = "No model solved a puzzle, so quality cannot be compared.";
+  if (fastest && top.length) {
+    const rate = `${fastest.solved}/${fastest.trials}`;
+    quality = top.includes(fastest)
+      ? `Yes. ${modelName(fastest.model)} was fastest and tied or led on solves (${rate}).`
+      : `No. ${modelName(fastest.model)} was fastest but solved ${rate}; ${list(top)} solved ${top[0].solved}/${top[0].trials} at ${na(top[0].avg_latency_ms, 0, " ms")} per move.`;
+  }
+  return [
+    ["Fastest decisions", fastest ? `${modelName(fastest.model)}, ${na(fastest.avg_latency_ms, 0, " ms")} per move on average.` : "N/A"],
+    ["Highest solve rate", top.length ? `${list(top)}, ${top[0].solved}/${top[0].trials} solved (${na(topRate, 0, "%")}).` : "No model solved a puzzle."],
+    ["Shortest solutions", shortest.length ? `${list(shortest)}, +${minGap.toFixed(2)} moves over the exact optimum.` : "N/A, no solved puzzles."],
+    ["Fastest also best?", quality],
+  ];
+}
+
 async function renderSlide() {
   const id = $("#slide-run").value;
   const el = $("#slide");
-  const who = `<div class="slide__who">${esc(S.config.student.name)}<span>${esc(S.config.student.roll)}</span></div>`;
-  if (!id) { el.innerHTML = `<div class="slide__top"><div class="slide__title">No results yet</div>${who}</div>`; return; }
+  const who = `<span class="slide__who">${esc(S.config.student.name)} <span>${esc(S.config.student.roll)}</span></span>`;
+  if (!id) { el.innerHTML = `<div class="slide__head"><div class="slide__title">No results yet</div></div><div class="slide__main"></div><div class="slide__foot">${who}</div>`; return; }
   const st = await api(`/api/runs/${id}/stats`);
-  const best = (key, low) => {
-    const v = st.models.filter((m) => m[key] != null);
-    if (!v.length) return null;
-    return v.reduce((a, b) => ((low ? b[key] < a[key] : b[key] > a[key]) ? b : a)).model;
-  };
-  const top = best("success_rate_pct", false);
-  const metric = (k, v, sub = "") => `<div><div class="smetric__k">${k}</div><div class="smetric__v">${v}${sub ? ` <small>${sub}</small>` : ""}</div></div>`;
+  const info = S.runs.find((r) => r.id === id);
+  const date = info ? info.created_utc.slice(0, 10) : "";
   el.innerHTML = `
-    <div class="slide__top">
-      <div>
-        <div class="slide__kicker">Statistical benchmark · ${esc(st.tier)} tier</div>
-        <div class="slide__title">Rubik's Cube Race: results</div>
-        <div class="slide__sub">${st.games} puzzles × 4 models · same scrambles · ${st.rules.max_moves}-move limit · HTM</div>
-      </div>${who}
+    <div class="slide__head">
+      <div class="slide__kicker">${esc(st.tier)} tier · ${st.games} puzzles · 4 models · ${st.rules.max_moves}-move limit</div>
+      <div class="slide__title">Rubik's Cube Race: results</div>
     </div>
-    <div class="slide__cols">${st.models.map((m) => {
-      const info = S.config.models.find((x) => x.key === m.model);
-      return `<div class="scol ${m.model === top ? "scol--best" : ""}">
-        <div><div class="scol__name">${esc(info.name)}</div><div class="scol__cat">${esc(info.category)}</div></div>
-        ${metric("Avg latency / move", na(m.avg_latency_ms, 0), "ms")}
-        ${metric("Total solve time", na(m.total_time_s, 1), `s · avg ${na(m.avg_trial_time_s, 1)} s/puzzle`)}
-        ${metric("Total moves", m.total_moves, `avg ${na(m.avg_moves)}`)}
-        ${metric("Success rate", na(m.success_rate_pct, 0, "%"), `${m.solved}/${m.trials}`)}
-        ${metric("Optimality gap", m.avg_optimality_gap == null ? "N/A" : `+${m.avg_optimality_gap.toFixed(2)}`,
-                 m.gap_n ? `${m.optimal_solves}/${m.gap_n} optimal` : "no solves")}
-        ${metric("Optimal-move rate", na(m.optimal_move_rate_pct, 0, "%"), "of turns")}
-        ${metric("Invalid replies", m.malformed + m.errors, `${m.malformed} malformed · ${m.errors} errors`)}
-      </div>`;
-    }).join("")}</div>
-    <div class="slide__foot">
-      <span>Random-move baseline solve rate: ${na(st.random_baseline.success_rate_pct, 2, "%")}</span>
-      <span>Reported API spend: $${st.spend.reported_cost_usd.toFixed(4)}</span>
-      <span>run ${esc(st.run_id)}</span>
-    </div>`;
+    <div class="slide__main">
+      <div class="answers">${slideAnswers(st.models).map(([k, a]) =>
+        `<div class="answer"><div class="answer__k">${esc(k)}</div><div class="answer__a">${esc(a)}</div></div>`).join("")}</div>
+      <div>
+        <table class="stbl">
+          <thead><tr><th>Model</th><th>Success</th><th>Latency</th><th>Gap</th><th>Cost</th></tr></thead>
+          <tbody>${st.models.map((m) => `<tr>
+            <td>${esc(modelName(m.model))}</td>
+            <td>${m.solved}/${m.trials}</td>
+            <td>${na(m.avg_latency_ms, 0, " ms")}</td>
+            <td>${m.avg_optimality_gap == null ? "N/A" : `+${m.avg_optimality_gap.toFixed(2)}`}</td>
+            <td>$${m.cost_usd.toFixed(4)}</td></tr>`).join("")}</tbody>
+        </table>
+        <div class="slide__note">Random-move baseline solve rate ${na(st.random_baseline.success_rate_pct, 2, "%")} · total reported spend $${st.spend.reported_cost_usd.toFixed(4)}</div>
+      </div>
+    </div>
+    <div class="slide__foot">${who}<span>run ${esc(st.run_id)}</span><span>${esc(date)}</span></div>`;
 }
 
 /* ------------------------------------------------------------------ wiring */

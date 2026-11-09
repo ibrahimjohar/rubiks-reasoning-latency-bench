@@ -128,6 +128,6 @@ def run_stats(run: dict) -> dict:
         "games": len(run["games"]),
         "rules": run["rules"],
         "spend": run["spend"],
-        "models": [model_stats(run, m["key"]) for m in MODELS],
+        "models": [model_stats(run, m["key"]) for m in run.get("models", MODELS)],
         "random_baseline": random_baseline(run),
     }

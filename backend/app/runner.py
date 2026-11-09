@@ -11,7 +11,10 @@ Guardrails enforced here:
   * run budget: no new request once reported spend reaches RUN_BUDGET_USD,
   * account errors (401/402/403) abort the whole run instead of being blamed
     on a model, and a user abort stops every game at its next turn,
-  * no fallback models: a failing model is recorded as failing.
+  * no fallback models: a failing model is recorded as failing,
+  * planning guard (optional): stops the run early if the frontier LLM is not
+    actually reasoning, is cut off by max_tokens, or keeps timing out, so a
+    misconfigured run cannot burn the budget.
 Each model is timed on its own clock, so running in parallel does not mix
 latencies. Results are saved after every puzzle so nothing is lost on a crash.
 """
@@ -45,16 +48,44 @@ DEFAULT_DECIDERS: dict[str, Decider] = {
 }
 
 
-def plan(tier: str, n_puzzles: int, repeats: int, rules: Rules) -> dict:
+def plan(tier: str, n_puzzles: int, repeats: int, rules: Rules,
+         n_models: int = len(MODELS)) -> dict:
     """Upper bounds shown to the user before any paid call."""
     games = n_puzzles * repeats
     max_calls_per_model = games * rules.max_moves * (1 + rules.max_retries)
     return {
         "tier": tier, "puzzles": n_puzzles, "repeats": repeats, "games": games,
+        "models": n_models,
         "max_turns_per_model": games * rules.max_moves,
-        "max_http_calls_total": max_calls_per_model * len(MODELS),
+        "max_http_calls_total": max_calls_per_model * n_models,
         "run_budget_usd": rules.run_budget_usd,
     }
+
+
+# Planning guard thresholds (frontier LLM only).
+GUARD_WINDOW = 6            # judge the first N turns of the run
+GUARD_MIN_REASONING = 100   # a turn with fewer reasoning tokens counts as "not thinking"
+GUARD_MAX_SHALLOW = 3       # abort if this many of the window were "not thinking"
+GUARD_MAX_CUTOFF = 2        # abort if this many replies were cut off by max_tokens
+GUARD_MAX_TIMEOUT = 2       # abort if this many turns ended in a timeout
+
+
+def guard_verdict(steps: list[dict]) -> str | None:
+    """Return an abort reason if the frontier LLM's first turns show a config problem."""
+    window = steps[:GUARD_WINDOW]
+    shallow = sum(1 for s in window if (s.get("reasoning_tokens") or 0) < GUARD_MIN_REASONING
+                  and s.get("outcome") != "error")
+    cutoff = sum(1 for s in steps[:2 * GUARD_WINDOW] if s.get("finish_reason") == "length")
+    timeouts = sum(1 for s in steps[:2 * GUARD_WINDOW]
+                   if s.get("outcome") == "error" and "timeout" in str(s.get("error", "")).lower())
+    if cutoff >= GUARD_MAX_CUTOFF:
+        return f"planning guard: {cutoff} replies cut off by max_tokens; raise max_tokens"
+    if timeouts >= GUARD_MAX_TIMEOUT:
+        return f"planning guard: {timeouts} timeouts; raise the request timeout"
+    if len(window) >= GUARD_WINDOW and shallow >= GUARD_MAX_SHALLOW:
+        return (f"planning guard: Opus reasoned < {GUARD_MIN_REASONING} tokens on "
+                f"{shallow} of its first {GUARD_WINDOW} turns; raise reasoning effort")
+    return None
 
 
 def _now() -> str:
@@ -74,9 +105,15 @@ def _step_analysis(state_before: str, move: str | None) -> dict:
 
 class Run:
     def __init__(self, tier: str, n_puzzles: int | None, repeats: int, rules: Rules,
-                 deciders: dict[str, Decider] | None = None, label: str = "live"):
+                 deciders: dict[str, Decider] | None = None, label: str = "live",
+                 models: list[str] | None = None, guard: bool = False):
         self.rules = rules
         self.deciders = deciders or DEFAULT_DECIDERS
+        self.models = [m for m in MODELS if models is None or m["key"] in models]
+        if not self.models:
+            raise ValueError(f"no known models in {models}")
+        self.guard = guard
+        self._llm_steps: list[dict] = []
         puzzles = get_puzzles(tier, n_puzzles)
         self.abort_reason: str | None = None
         self._cost = 0.0
@@ -89,14 +126,15 @@ class Run:
             "status": "running",
             "abort_reason": None,
             "rules": rules.snapshot(),
-            "models": MODELS,
-            "plan": plan(tier, len(puzzles), repeats, rules),
+            "models": self.models,
+            "planning_guard": guard,
+            "plan": plan(tier, len(puzzles), repeats, rules, len(self.models)),
             "spend": {"reported_cost_usd": 0.0, "http_attempts": 0, "turns": 0,
                       "turns_without_reported_cost": 0},
             "current_game": 0,
             "games": [
                 {"index": i, "repeat": r, "puzzle": p, "started_utc": None,
-                 "trials": {m["key"]: self._new_trial(m) for m in MODELS}}
+                 "trials": {m["key"]: self._new_trial(m) for m in self.models}}
                 for i, (r, p) in enumerate((r, p) for r in range(repeats) for p in puzzles)
             ],
         }
@@ -163,6 +201,11 @@ class Run:
             step.update(turn=trial["turns"], t_start_ms=t_start, t_end_ms=t_end,
                         state_after=state, solved_after=is_solved(state), **analysis)
             trial["steps"].append(step)
+            if self.guard and model["api"] == "chat":
+                self._llm_steps.append(step)
+                reason = guard_verdict(self._llm_steps)
+                if reason:
+                    self.request_abort(reason)
 
         trial["elapsed_ms"] = round((time.perf_counter() - t0) * 1000, 1)
         if trial["status"] != "aborted":
@@ -185,7 +228,7 @@ class Run:
                 self.data["current_game"] = game["index"]
                 game["started_utc"] = _now()
                 t_game = time.perf_counter()
-                await asyncio.gather(*(self._play(client, game, m, t_game) for m in MODELS))
+                await asyncio.gather(*(self._play(client, game, m, t_game) for m in self.models))
                 self.save()
         finally:
             if own_client:

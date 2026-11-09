@@ -5,17 +5,22 @@
     python run_benchmark.py --tier primary --repeats 2  # play the suite twice
     python run_benchmark.py --tier extension
 
+    # Opus only, with stronger settings (decision models are unaffected by these knobs):
+    python run_benchmark.py --tier primary --models opus --opus-effort high \
+        --opus-max-tokens 16000 --timeout 300 --label opus-high
+
 Before any paid call it prints the upper bounds and asks you to type "yes".
 """
 
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import asyncio
 import sys
 
 from backend.app import runner, stats
-from backend.app.rules import api_key, load_rules
+from backend.app.rules import MODELS, api_key, load_rules
 from backend.app.scrambles import TIERS
 
 
@@ -41,21 +46,42 @@ def main() -> None:
                     help="number of puzzles from the fixed suite (default: whole tier)")
     ap.add_argument("--repeats", type=int, default=1)
     ap.add_argument("--yes", action="store_true", help="skip the confirmation prompt")
+    ap.add_argument("--models", default=None,
+                    help="comma-separated subset, e.g. opus (default: all four)")
+    ap.add_argument("--opus-effort", choices=["low", "medium", "high"], default=None)
+    ap.add_argument("--opus-max-tokens", type=int, default=None)
+    ap.add_argument("--timeout", type=float, default=None, help="per-request timeout, seconds")
+    ap.add_argument("--budget", type=float, default=None, help="run budget in USD")
+    ap.add_argument("--label", default="live", help="run label stored in the run file")
+    ap.add_argument("--no-guard", action="store_true",
+                    help="disable the planning guard (on by default whenever Opus plays)")
     args = ap.parse_args()
 
     if not api_key():
         sys.exit("OPENROUTER_API_KEY is missing. Copy .env.example to .env and add your key.")
     rules = load_rules()
-    run = runner.Run(args.tier, args.puzzles, args.repeats, rules)
+    over = {k: v for k, v in {"opus_reasoning_effort": args.opus_effort,
+                              "opus_max_tokens": args.opus_max_tokens,
+                              "timeout_seconds": args.timeout,
+                              "run_budget_usd": args.budget}.items() if v is not None}
+    rules = dataclasses.replace(rules, **over)
+    keys = [k.strip() for k in args.models.split(",")] if args.models else None
+    if keys and not set(keys) <= {m["key"] for m in MODELS}:
+        sys.exit(f"Unknown model in --models: {args.models}")
+    guard = not args.no_guard and (keys is None or "opus" in keys)
+    run = runner.Run(args.tier, args.puzzles, args.repeats, rules, label=args.label,
+                     models=keys, guard=guard)
     p = run.data["plan"]
-    print(f"\nTier {p['tier']}: {p['puzzles']} puzzle(s) x {p['repeats']} repeat(s) x 4 models")
+    names = ", ".join(m["key"] for m in run.models)
+    print(f"\nTier {p['tier']}: {p['puzzles']} puzzle(s) x {p['repeats']} repeat(s) x {names}")
     print(f"Move limit {rules.max_moves} | timeout {rules.timeout_seconds}s | "
           f"retries {rules.max_retries} | Opus effort {rules.opus_reasoning_effort}, "
           f"max_tokens {rules.opus_max_tokens}")
     print(f"Upper bound: {p['max_turns_per_model']} turns per model, "
           f"{p['max_http_calls_total']} HTTP calls in total")
     print(f"Run budget: stops before any new call once reported spend reaches "
-          f"${rules.run_budget_usd:.2f}\n")
+          f"${rules.run_budget_usd:.2f}")
+    print(f"Planning guard: {'ON' if guard else 'off'} | label: {args.label}\n")
     if not args.yes and input('Type "yes" to start paid API calls: ').strip().lower() != "yes":
         sys.exit("Cancelled. No requests were sent.")
 

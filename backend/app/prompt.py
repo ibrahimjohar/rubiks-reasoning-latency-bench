@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import json
 
-from .cube import MOVES, face_grids, move_description
+from .cube import MOVES, move_description
 
 INSTRUCTIONS = ("Choose the single next move most likely to progress toward "
                 "the solved cube.")
@@ -19,10 +19,8 @@ INSTRUCTIONS = ("Choose the single next move most likely to progress toward "
 STATE_FORMAT_NOTE = (
     "cube_facelets lists 54 stickers in face order U (up), R (right), F (front), "
     "D (down), L (left), B (back), 9 per face, read row by row. Each letter names "
-    "the face whose centre colour that sticker matches. faces shows the same data "
-    "as a 3x3 grid per face: U is seen from above with F at the bottom, D from "
-    "below with F at the top, and R, F, L, B are each seen from their own side "
-    "with U at the top. The cube is solved when every face shows only its own letter."
+    "the face whose centre colour that sticker matches. The cube is solved when "
+    "every face shows only its own letter."
 )
 
 MOVE_CRITERIA = {m: move_description(m) for m in MOVES}
@@ -33,7 +31,6 @@ def build_state(facelets: str, moves_played: list[str], moves_remaining: int) ->
     moves_remaining: turns left before the move limit (invalid turns also count)."""
     return {
         "cube_facelets": facelets,
-        "faces": face_grids(facelets),
         "format": STATE_FORMAT_NOTE,
         "recent_moves": list(moves_played),
         "moves_remaining": moves_remaining,

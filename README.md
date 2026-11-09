@@ -60,7 +60,6 @@ state (current cube + this model's move history) ──► model ──► one m
 ```json
 {
   "cube_facelets": "UUFUUFUUFRRRRRRRRRFFDFFDFFDDDBDDBDDBLLLLLLLLLUBBUBBUBB",
-  "faces": { "U": ["UUF","UUF","UUF"], "R": ["RRR","RRR","RRR"], "...": "..." },
   "format": "cube_facelets lists 54 stickers in face order U, R, F, D, L, B ...",
   "recent_moves": [],
   "moves_remaining": 30
@@ -124,7 +123,7 @@ The pilot smoke test cost $0.003 for one call to each of the four models. Opus w
 
 ## Pilot: state format
 
-The first smoke test sent only the 54-character string. All three decision models returned nearly uniform probabilities over the 18 moves, with confidence 5–12%, and picked wrong moves. Opus picked the correct `R'`. **Before the benchmark** I added labeled 3×3 face grids and a short format description to the state. The reason was readability alone, not results on any benchmark puzzle. The final format is the same for all four models.
+The first smoke test sent a plain-text description of the 54-character string. All three decision models returned nearly uniform probabilities over the 18 moves (confidence 5–12%) and picked wrong moves, while Opus picked the correct `R'`. I then tried a structured state that also contained labeled 3×3 face grids. GPT-6 Luna Decisions **refused every request containing the grids** (HTTP 502 "OpenAI refused to answer question"), so a single-sample probe on the smoke-test cube (solved + R, never a benchmark puzzle) isolated the cause. Without the grids it answered. The grids were therefore removed **for all four models**, so that the state stays identical across models. The final state is the facelet string, a short format note, the move history and the moves remaining. All of this was settled before any benchmark puzzle was played.
 
 ---
 

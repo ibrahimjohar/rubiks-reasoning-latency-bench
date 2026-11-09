@@ -1,0 +1,179 @@
+{
+  "timestamp_utc": "20261026T235005Z",
+  "state": "UUFUUFUUFRRRRRRRRRFFDFFDFFDDDBDDBDDBLLLLLLLLLUBBUBBUBB",
+  "optimal_move": "R'",
+  "rules": {
+    "max_moves": 30,
+    "metric": "HTM",
+    "history_policy": "full",
+    "timeout_seconds": 60.0,
+    "max_retries": 1,
+    "retry_backoff_seconds": 2.0,
+    "opus_reasoning_effort": "low",
+    "opus_max_tokens": 1024,
+    "opus_structured_output": true,
+    "run_budget_usd": 2.0,
+    "student_name": "Ibrahim Johar Farooqi",
+    "student_roll": "23K-0074"
+  },
+  "results": {
+    "jev": {
+      "outcome": "ok",
+      "move": "U2",
+      "raw_move": "U2",
+      "latency_ms": 936.1,
+      "wall_ms": 936.2,
+      "attempts": 1,
+      "http_status": 200,
+      "error": null,
+      "confidence": 0.11,
+      "probabilities": {
+        "U": 0.12000000000000001,
+        "U'": 0.09,
+        "U2": 0.16,
+        "R": 0.03,
+        "R'": 0.02,
+        "R2": 0.02,
+        "F": 0.07,
+        "F'": 0.05,
+        "F2": 0.06,
+        "D": 0.03,
+        "D'": 0.03,
+        "D2": 0.03,
+        "L": 0.02,
+        "L'": 0.02,
+        "L2": 0.02,
+        "B": 0.06,
+        "B'": 0.1,
+        "B2": 0.07
+      },
+      "finish_reason": null,
+      "raw_content": null,
+      "reasoning": null,
+      "input_tokens": 1018,
+      "output_tokens": 157,
+      "reasoning_tokens": null,
+      "cost_usd": 4.2756e-05,
+      "served_model": "typesafe/jev-1.13-20260917",
+      "provider": "TypeSafe",
+      "generation_id": "gen-dec-1793058590-7uoo4yS5TaewkFBerPIx",
+      "attempt_log": [
+        {
+          "status": 200,
+          "ms": 936.1
+        }
+      ],
+      "retries": 0
+    },
+    "luna": {
+      "outcome": "error",
+      "move": null,
+      "raw_move": null,
+      "latency_ms": 495.9,
+      "wall_ms": 3171.8,
+      "attempts": 2,
+      "http_status": 502,
+      "error": "HTTP 502: {\"error\":{\"message\":\"OpenAI refused to answer question \\\"next_move\\\"\",\"code\":502}}",
+      "confidence": null,
+      "probabilities": null,
+      "finish_reason": null,
+      "raw_content": null,
+      "reasoning": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "reasoning_tokens": null,
+      "cost_usd": null,
+      "served_model": null,
+      "provider": null,
+      "generation_id": null,
+      "attempt_log": [
+        {
+          "status": 502,
+          "ms": 662.1
+        },
+        {
+          "status": 502,
+          "ms": 495.9
+        }
+      ],
+      "retries": 1
+    },
+    "clef": {
+      "outcome": "ok",
+      "move": "U'",
+      "raw_move": "U'",
+      "latency_ms": 4684.6,
+      "wall_ms": 4684.6,
+      "attempts": 1,
+      "http_status": 200,
+      "error": null,
+      "confidence": 0.0101,
+      "probabilities": {
+        "U": 0.0895,
+        "U'": 0.1198,
+        "U2": 0.0799,
+        "R": 0.0451,
+        "R'": 0.053,
+        "R2": 0.0365,
+        "F": 0.0636,
+        "F'": 0.0803,
+        "F2": 0.0634,
+        "D": 0.0505,
+        "D'": 0.0429,
+        "D2": 0.0424,
+        "L": 0.0525,
+        "L'": 0.0452,
+        "L2": 0.0389,
+        "B": 0.0322,
+        "B'": 0.0378,
+        "B2": 0.0265
+      },
+      "finish_reason": null,
+      "raw_content": null,
+      "reasoning": null,
+      "input_tokens": 832,
+      "output_tokens": 0,
+      "reasoning_tokens": null,
+      "cost_usd": 0.00019968,
+      "served_model": "cloudflare/clef",
+      "provider": "Cloudflare",
+      "generation_id": "gen-dec-1793058594-Dc6A4xs2f6UTSSsPT6Bm",
+      "attempt_log": [
+        {
+          "status": 200,
+          "ms": 4684.6
+        }
+      ],
+      "retries": 0
+    },
+    "opus": {
+      "outcome": "ok",
+      "move": "R'",
+      "raw_move": "R'",
+      "latency_ms": 6902.9,
+      "wall_ms": 6903.0,
+      "attempts": 1,
+      "http_status": 200,
+      "error": null,
+      "confidence": null,
+      "probabilities": null,
+      "finish_reason": "stop",
+      "raw_content": "{\"move\":\"R'\"}",
+      "reasoning": "Tracing the cycle, I see the stickers match exactly what a single R move would produce from a solved cube: U gets F's column, F gets D's, D gets B's, and B gets U's \u2014 confirming this state is the result of applying R.\n\n",
+      "input_tokens": 1231,
+      "output_tokens": 173,
+      "reasoning_tokens": 162,
+      "cost_usd": 0.008384,
+      "served_model": "anthropic/claude-opus-5.5",
+      "provider": "Claude Platform on AWS",
+      "generation_id": "gen-1793058598-UX7FrsuVpSJKoVtG7biA",
+      "attempt_log": [
+        {
+          "status": 200,
+          "ms": 6902.9
+        }
+      ],
+      "retries": 0
+    }
+  }
+}

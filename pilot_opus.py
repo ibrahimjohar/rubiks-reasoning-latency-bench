@@ -30,6 +30,7 @@ import httpx
 from backend.app import solver
 from backend.app.cube import apply_move, inverse_move
 from backend.app.adapters import chat
+from backend.app.adapters.base import RunAborted
 from backend.app.prompt import build_state
 from backend.app.rules import MODEL_BY_KEY, ROOT, api_key, load_rules
 from backend.app.scrambles import get_puzzles
@@ -68,7 +69,10 @@ async def main() -> None:
     headers = {"Authorization": f"Bearer {api_key()}", "Content-Type": "application/json",
                "X-Title": "rubiks-reasoning-latency-bench"}
     async with httpx.AsyncClient(headers=headers) as client:
+        stop = False
         for p in puzzles:
+            if stop:
+                break
             first = solver.optimal_moves(p["state"])[0]
             probes = [("start", p["state"], []),
                       ("mid", apply_move(p["state"], first), [first])]
@@ -76,7 +80,12 @@ async def main() -> None:
                 if spent >= args.budget:
                     break
                 state = build_state(facelets, history, rules.max_moves - len(history))
-                res = await chat.decide(client, MODEL_BY_KEY["opus"]["id"], state, rules)
+                try:
+                    res = await chat.decide(client, MODEL_BY_KEY["opus"]["id"], state, rules)
+                except RunAborted as exc:
+                    print(f"Stopped: {exc}")
+                    stop = True
+                    break
                 spent += res.cost_usd or 0.0
                 opt = solver.optimal_moves(facelets)
                 good = res.move in opt if res.move else False

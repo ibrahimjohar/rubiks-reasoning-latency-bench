@@ -61,7 +61,7 @@ state (current cube + this model's move history) ──► model ──► one m
 {
   "cube_facelets": "UUFUUFUUFRRRRRRRRRFFDFFDFFDDDBDDBDDBLLLLLLLLLUBBUBBUBB",
   "format": "cube_facelets lists 54 stickers in face order U, R, F, D, L, B ...",
-  "recent_moves": [],
+  "moves_you_have_played": [],
   "moves_remaining": 30
 }
 ```

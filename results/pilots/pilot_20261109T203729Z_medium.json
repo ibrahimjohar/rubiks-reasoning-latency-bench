@@ -1,0 +1,162 @@
+{
+ "settings": {
+  "effort": "medium",
+  "max_tokens": 8000,
+  "timeout": 300.0,
+  "tier": "primary",
+  "puzzles": 3,
+  "budget": 1.5
+ },
+ "rows": [
+  {
+   "puzzle": "primary-01",
+   "probe": "start",
+   "distance": 4,
+   "history": [],
+   "outcome": "ok",
+   "move": "F'",
+   "optimal": true,
+   "undo": false,
+   "optimal_moves": [
+    "F'"
+   ],
+   "reasoning_tokens": 1171,
+   "output_tokens": 1182,
+   "finish_reason": "stop",
+   "latency_ms": 18856.2,
+   "cost_usd": 0.027508,
+   "error": null
+  },
+  {
+   "puzzle": "primary-01",
+   "probe": "mid",
+   "distance": 3,
+   "history": [
+    "F'"
+   ],
+   "outcome": "ok",
+   "move": "F",
+   "optimal": false,
+   "undo": true,
+   "optimal_moves": [
+    "L"
+   ],
+   "reasoning_tokens": 1707,
+   "output_tokens": 1717,
+   "finish_reason": "stop",
+   "latency_ms": 27303.2,
+   "cost_usd": 0.038252,
+   "error": null
+  },
+  {
+   "puzzle": "primary-02",
+   "probe": "start",
+   "distance": 5,
+   "history": [],
+   "outcome": "ok",
+   "move": "F'",
+   "optimal": false,
+   "undo": false,
+   "optimal_moves": [
+    "U"
+   ],
+   "reasoning_tokens": 1988,
+   "output_tokens": 1999,
+   "finish_reason": "stop",
+   "latency_ms": 28740.2,
+   "cost_usd": 0.043848,
+   "error": null
+  },
+  {
+   "puzzle": "primary-02",
+   "probe": "mid",
+   "distance": 4,
+   "history": [
+    "U"
+   ],
+   "outcome": "ok",
+   "move": "U'",
+   "optimal": false,
+   "undo": true,
+   "optimal_moves": [
+    "L"
+   ],
+   "reasoning_tokens": 559,
+   "output_tokens": 570,
+   "finish_reason": "stop",
+   "latency_ms": 10404.8,
+   "cost_usd": 0.015296,
+   "error": null
+  },
+  {
+   "puzzle": "primary-03",
+   "probe": "start",
+   "distance": 4,
+   "history": [],
+   "outcome": "ok",
+   "move": "F'",
+   "optimal": true,
+   "undo": false,
+   "optimal_moves": [
+    "F'",
+    "B'"
+   ],
+   "reasoning_tokens": 927,
+   "output_tokens": 938,
+   "finish_reason": "stop",
+   "latency_ms": 15475.9,
+   "cost_usd": 0.022636,
+   "error": null
+  },
+  {
+   "puzzle": "primary-03",
+   "probe": "mid",
+   "distance": 3,
+   "history": [
+    "F'"
+   ],
+   "outcome": "ok",
+   "move": "R",
+   "optimal": false,
+   "undo": false,
+   "optimal_moves": [
+    "B'"
+   ],
+   "reasoning_tokens": 2728,
+   "output_tokens": 2738,
+   "finish_reason": "stop",
+   "latency_ms": 40096.5,
+   "cost_usd": 0.058676,
+   "error": null
+  }
+ ],
+ "spent_usd": 0.206216,
+ "checks": [
+  {
+   "check": "move optimal on >= 60% of probes",
+   "pass": false,
+   "value": "33%"
+  },
+  {
+   "check": "undoes its own correct move on <= 20% of mid-game probes",
+   "pass": false,
+   "value": "67%"
+  },
+  {
+   "check": "median reasoning >= 500 tokens",
+   "pass": true,
+   "value": "1439"
+  },
+  {
+   "check": "no reply cut off by max_tokens",
+   "pass": true,
+   "value": "0"
+  },
+  {
+   "check": "no timeouts / errors",
+   "pass": true,
+   "value": "0"
+  }
+ ],
+ "verdict": false
+}

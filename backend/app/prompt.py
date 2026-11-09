@@ -18,9 +18,17 @@ INSTRUCTIONS = ("Choose the single next move most likely to progress toward "
 
 STATE_FORMAT_NOTE = (
     "cube_facelets lists 54 stickers in face order U (up), R (right), F (front), "
-    "D (down), L (left), B (back), 9 per face, read row by row. Each letter names "
+    "D (down), L (left), B (back), 9 per face. Each face is read row by row, "
+    "top-left to bottom-right, as seen looking straight at that face: on U the top "
+    "row is the edge next to B and the left column is next to L; on D the top row "
+    "is next to F and the left column is next to L; on R, F, L and B the top row is "
+    "next to U. The centre sticker is the 5th of each face. Each letter names "
     "the face whose centre colour that sticker matches. The cube is solved when "
-    "every face shows only its own letter."
+    "every face shows only its own letter. moves_you_have_played lists, in order, "
+    "the moves you have already applied in this game, starting from the scrambled "
+    "cube you were first given; cube_facelets already includes their effect. They "
+    "are your own moves, not the scramble. moves_remaining is how many moves you "
+    "have left before the move limit."
 )
 
 MOVE_CRITERIA = {m: move_description(m) for m in MOVES}
@@ -32,7 +40,7 @@ def build_state(facelets: str, moves_played: list[str], moves_remaining: int) ->
     return {
         "cube_facelets": facelets,
         "format": STATE_FORMAT_NOTE,
-        "recent_moves": list(moves_played),
+        "moves_you_have_played": list(moves_played),
         "moves_remaining": moves_remaining,
     }
 

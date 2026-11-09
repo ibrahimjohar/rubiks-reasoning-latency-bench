@@ -31,6 +31,7 @@ const S = {
 // Net layout on a 12 x 9 grid: U above F, then L F R B, D below F.
 const NET_ORIGIN = { U: [0, 3], L: [3, 0], F: [3, 3], R: [3, 6], B: [3, 9], D: [6, 3] };
 const FACE_ORDER = "URFDLB";
+const SOLVED = [...FACE_ORDER].map((f) => f.repeat(9)).join("");
 // Display only: never feeds the statistics.
 function stickersCorrect(state) {
   let n = 0;
@@ -90,7 +91,7 @@ function buildCards() {
         <span class="status" id="st-${m.key}">WAITING</span>
         <span class="rank" id="rk-${m.key}"></span>
       </div>
-      <div class="card__cube"><div class="net net--big" id="net-${m.key}"></div></div>
+      <div class="card__cube"><div class="net net--big" id="net-${m.key}">${netHTML(SOLVED)}</div></div>
       <div class="card__body">
         <div class="now">
           <div class="now__move" id="mv-${m.key}">—</div>
@@ -308,11 +309,10 @@ function bars(title, rows, key, { digits = 0, suffix = "", lowerBetter = false, 
   const vals = rows.map((r) => r[key]).filter((v) => v != null);
   const max = scale ?? Math.max(...vals, 1e-9);
   return `<div class="panel"><h3>${title}</h3><div class="bars">${rows.map((r) => {
-    const m = S.config.models.find((x) => x.key === r.model);
     const v = r[key];
     const pct = v ? Math.max(2, (v / max) * 100) : 0;
     return `<div class="bar__row"><span class="bar__label">${esc(modelName(r.model))}</span>
-      <span class="bar__track"><span class="bar__fill ${m && m.api === "chat" ? "bar__fill--llm" : ""}" style="width:${pct}%"></span></span>
+      <span class="bar__track"><span class="bar__fill" data-m="${esc(r.model)}" style="width:${pct}%"></span></span>
       <span class="bar__val">${na(v, digits, suffix)}</span></div>`;
   }).join("")}</div>${lowerBetter ? `<div class="meta-line">Lower is better</div>` : ""}</div>`;
 }
@@ -341,7 +341,7 @@ async function renderDashboard() {
     <thead><tr><th>Model</th><th>Solved</th><th>Success</th><th>Avg latency</th><th>Median</th><th>p95</th>
       <th>Total time</th><th>Avg moves</th><th>Gap</th><th>Optimal moves</th><th>Malformed</th><th>Errors</th><th>Cost</th></tr></thead>
     <tbody>${ms.map((m) => `<tr>
-      <td>${esc(modelName(m.model))}</td><td>${m.solved}/${m.trials}</td><td>${na(m.success_rate_pct, 1, "%")}</td>
+      <td><span class="dot" data-m="${esc(m.model)}"></span>${esc(modelName(m.model))}</td><td>${m.solved}/${m.trials}</td><td>${na(m.success_rate_pct, 1, "%")}</td>
       <td>${na(m.avg_latency_ms, 0, " ms")}</td><td>${na(m.median_latency_ms, 0, " ms")}</td><td>${na(p95Latency(run, m.model), 0, " ms")}</td>
       <td>${na(m.total_time_s, 1, " s")}</td><td>${na(m.avg_moves)}</td>
       <td>${m.avg_optimality_gap == null ? "N/A" : `+${m.avg_optimality_gap.toFixed(2)} (n=${m.gap_n})`}</td>
@@ -424,7 +424,7 @@ async function renderSlide() {
         <table class="stbl">
           <thead><tr><th>Model</th><th>Success</th><th>Latency</th><th>Gap</th><th>Cost</th></tr></thead>
           <tbody>${st.models.map((m) => `<tr>
-            <td>${esc(modelName(m.model))}</td>
+            <td><span class="dot" data-m="${esc(m.model)}"></span>${esc(modelName(m.model))}</td>
             <td>${m.solved}/${m.trials}</td>
             <td>${na(m.avg_latency_ms, 0, " ms")}</td>
             <td>${m.avg_optimality_gap == null ? "N/A" : `+${m.avg_optimality_gap.toFixed(2)}`}</td>
@@ -457,6 +457,7 @@ async function init() {
   $("#live-start").disabled = !S.config.live_ready;
   if (!S.config.live_ready) $("#live-flag").textContent = "OPENROUTER_API_KEY not set in .env";
   buildCards();
+  $("#start-net").innerHTML = netHTML(SOLVED);
   await refreshRuns();
 
   document.querySelectorAll(".tabs button").forEach((b) => b.addEventListener("click", () => showView(b.dataset.view)));

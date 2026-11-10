@@ -9,10 +9,9 @@ Four models play the same scrambled 3x3 cubes through OpenRouter. On every turn 
 
 ## Demo recording
 
-<!-- RECORDING: replace the line below if the video is hosted elsewhere -->
 [Watch the screen recording](media/demo.mp4) (`media/demo.mp4` in this repository)
 
-The recording shows the models racing, completed races with final status and ranks, and the closing results slide. My name and roll number stay on screen throughout.
+The recording shows the models racing, completed races with final status and ranks, and the closing results slide. My name and roll number are in the bar at the top of every screen, and on the results slide.
 
 ## Results
 
